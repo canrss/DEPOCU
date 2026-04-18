@@ -28,9 +28,13 @@ export default function AdminPage() {
   const [newShopName, setNewShopName] = useState("");
   const [generating, setGenerating] = useState(false);
 
+  const [error, setError] = useState("");
+
   async function fetchLicenses() {
     setLoading(true);
-    const { data } = await supabase.from("licenses").select("*").order("created_at", { ascending: false });
+    setError("");
+    const { data, error } = await supabase.from("licenses").select("*").order("created_at", { ascending: false });
+    if (error) setError(error.message);
     setLicenses(data ?? []);
     setLoading(false);
   }
@@ -40,30 +44,72 @@ export default function AdminPage() {
   async function createLicense() {
     if (!newShopName.trim()) return;
     setGenerating(true);
-    const key = generateLicenseKey();
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    await supabase.from("licenses").insert({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      key,
-      shop_name: newShopName.trim(),
-      expires_at: expiresAt,
-      is_active: true,
-      created_at: new Date().toISOString(),
-    });
-    setNewShopName("");
-    await fetchLicenses();
-    setGenerating(false);
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/licenses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ shopName: newShopName.trim() }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Lisans oluşturulamadı");
+
+      setNewShopName("");
+      await fetchLicenses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lisans oluşturulamadı");
+    } finally {
+      setGenerating(false);
+    }
   }
 
   async function renewLicense(id: string) {
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    await supabase.from("licenses").update({ expires_at: expiresAt, is_active: true }).eq("id", id);
-    await fetchLicenses();
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/licenses", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ id, action: "renew" }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Lisans yenilenemedi");
+
+      await fetchLicenses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lisans yenilenemedi");
+    }
   }
 
   async function revokeLicense(id: string) {
-    await supabase.from("licenses").update({ is_active: false }).eq("id", id);
-    await fetchLicenses();
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/licenses", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ id, action: "revoke" }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Lisans iptal edilemedi");
+
+      await fetchLicenses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lisans iptal edilemedi");
+    }
   }
 
   if (!authed) {
@@ -134,6 +180,12 @@ export default function AdminPage() {
             </button>
           </div>
         </motion.div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 border border-red-200 rounded-2xl px-4 py-3 text-sm">
+            {error}
+          </div>
+        )}
 
         {/* License List */}
         <div className="space-y-3">

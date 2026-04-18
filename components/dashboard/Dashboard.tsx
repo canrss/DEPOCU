@@ -113,7 +113,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex items-center justify-between mb-8"
+        className="mb-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -124,7 +124,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+        <div className={`self-start flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
           isOnline
             ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
             : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
@@ -135,7 +135,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <StatCard title="Bugünkü Ciro" value={fmt(todayRevenue)} sub={`${todaySales.length} satış`}
           icon={<ShoppingCart className="w-4 h-4" />} accent="blue" delay={0} />
         <StatCard title="Aylık Ciro" value={fmt(monthRevenue)} sub={`${monthSales.length} satış`}
@@ -147,7 +147,7 @@ export default function Dashboard() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <RevenueChart data={revenueData} />
         <StockTrendChart data={stockData} products={topProducts} />
       </div>

@@ -36,11 +36,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (isPublicRoute) return <>{children}</>;
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden">
+    <div className="flex min-h-screen md:h-screen flex-col md:flex-row bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-[220px] flex-shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/60 dark:border-slate-800/60 flex flex-col">
+      <aside className="w-full md:w-[220px] md:flex-shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-slate-800/60 flex flex-col">
         {/* Logo */}
-        <div className="px-5 pt-6 pb-4">
+        <div className="px-4 pt-4 pb-3 md:px-5 md:pt-6 md:pb-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-blue-500/20">
               📦
@@ -53,7 +53,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 space-y-0.5">
+        <nav className="flex-1 px-3 pb-3 md:pb-0 flex gap-2 overflow-x-auto md:block md:space-y-0.5">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (
@@ -61,7 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all",
+                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
                   active
                     ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400"
                     : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-800 dark:hover:text-slate-200"
@@ -100,7 +100,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 min-h-0 md:min-w-0 overflow-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}

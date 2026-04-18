@@ -36,14 +36,15 @@ export function RevenueChart({ data }: Props) {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-white/30 dark:border-slate-700/40 shadow-xl p-6"
+      className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-white/30 dark:border-slate-700/40 shadow-xl p-4 sm:p-6"
     >
       <div className="mb-5">
         <h2 className="text-lg font-bold text-slate-800 dark:text-white tracking-tight">Ciro & Net Kâr</h2>
         <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">Son 30 gün</p>
       </div>
 
-      <ResponsiveContainer width="100%" height={260}>
+      <div className="-mx-2 sm:mx-0">
+        <ResponsiveContainer width="100%" height={260}>
         <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -79,7 +80,8 @@ export function RevenueChart({ data }: Props) {
           <Area type="monotone" dataKey="profit" stroke="#34D399" strokeWidth={2.5}
             fill="url(#gradProfit)" dot={false} activeDot={{ r: 5, fill: "#34D399" }} />
         </AreaChart>
-      </ResponsiveContainer>
+        </ResponsiveContainer>
+      </div>
     </motion.div>
   );
 }

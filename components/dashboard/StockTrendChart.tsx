@@ -36,9 +36,9 @@ export function StockTrendChart({ data, products, criticalThreshold = 5 }: Props
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-white/30 dark:border-slate-700/40 shadow-xl p-6"
+      className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-white/30 dark:border-slate-700/40 shadow-xl p-4 sm:p-6"
     >
-      <div className="flex items-start justify-between mb-5">
+      <div className="mb-5 flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
         <div>
           <h2 className="text-lg font-bold text-slate-800 dark:text-white tracking-tight">Stok Azalım Trendi</h2>
           <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">En çok satan 5 ürün</p>
@@ -49,7 +49,8 @@ export function StockTrendChart({ data, products, criticalThreshold = 5 }: Props
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height={260}>
+      <div className="-mx-2 sm:mx-0">
+        <ResponsiveContainer width="100%" height={260}>
         <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
           <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94a3b8" }} tickLine={false} axisLine={false} />
@@ -75,7 +76,8 @@ export function StockTrendChart({ data, products, criticalThreshold = 5 }: Props
             />
           ))}
         </LineChart>
-      </ResponsiveContainer>
+        </ResponsiveContainer>
+      </div>
     </motion.div>
   );
 }
