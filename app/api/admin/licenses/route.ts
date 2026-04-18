@@ -7,11 +7,13 @@ const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "depocu2025";
 
 interface CreatePayload {
   shopName?: string;
+  days?: number;
 }
 
 interface UpdatePayload {
   id?: string;
   action?: "renew" | "revoke";
+  days?: number;
 }
 
 function generateLicenseKey(): string {
@@ -46,13 +48,18 @@ export async function POST(request: Request) {
 
   const body = (await request.json()) as CreatePayload;
   const shopName = body.shopName?.trim();
+  const days = Number(body.days ?? 30);
 
   if (!shopName) {
     return NextResponse.json({ error: "Dükkan adı gerekli" }, { status: 400 });
   }
 
+  if (!Number.isInteger(days) || days <= 0) {
+    return NextResponse.json({ error: "Geçerli bir gün sayısı gerekli" }, { status: 400 });
+  }
+
   const supabase = getAdminClient();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("licenses")
     .insert({
@@ -84,14 +91,37 @@ export async function PATCH(request: Request) {
   }
 
   const supabase = getAdminClient();
-  const payload = body.action === "renew"
-    ? {
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        is_active: true,
-      }
-    : {
-        is_active: false,
-      };
+
+  let payload: { expires_at?: string; is_active: boolean };
+
+  if (body.action === "renew") {
+    const days = Number(body.days ?? 30);
+    if (!Number.isInteger(days) || days <= 0) {
+      return NextResponse.json({ error: "Geçerli bir gün sayısı gerekli" }, { status: 400 });
+    }
+
+    const { data: existing, error: fetchError } = await supabase
+      .from("licenses")
+      .select("expires_at")
+      .eq("id", body.id)
+      .single();
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: fetchError?.message ?? "Lisans bulunamadı" }, { status: 500 });
+    }
+
+    const currentExpiry = new Date(existing.expires_at).getTime();
+    const baseTime = currentExpiry > Date.now() ? currentExpiry : Date.now();
+
+    payload = {
+      expires_at: new Date(baseTime + days * 24 * 60 * 60 * 1000).toISOString(),
+      is_active: true,
+    };
+  } else {
+    payload = {
+      is_active: false,
+    };
+  }
 
   const { error } = await supabase.from("licenses").update(payload).eq("id", body.id);
 

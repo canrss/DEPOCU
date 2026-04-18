@@ -26,6 +26,8 @@ export default function AdminPage() {
   const [licenses, setLicenses] = useState<LicenseRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [newShopName, setNewShopName] = useState("");
+  const [newLicenseDays, setNewLicenseDays] = useState("30");
+  const [licenseDayInputs, setLicenseDayInputs] = useState<Record<string, string>>({});
   const [generating, setGenerating] = useState(false);
 
   const [error, setError] = useState("");
@@ -36,6 +38,7 @@ export default function AdminPage() {
     const { data, error } = await supabase.from("licenses").select("*").order("created_at", { ascending: false });
     if (error) setError(error.message);
     setLicenses(data ?? []);
+    setLicenseDayInputs((current) => Object.fromEntries((data ?? []).map((lic) => [lic.id, current[lic.id] ?? "30"])));
     setLoading(false);
   }
 
@@ -43,6 +46,13 @@ export default function AdminPage() {
 
   async function createLicense() {
     if (!newShopName.trim()) return;
+
+    const days = Number(newLicenseDays);
+    if (!Number.isInteger(days) || days <= 0) {
+      setError("Geçerli bir gün sayısı girin.");
+      return;
+    }
+
     setGenerating(true);
     setError("");
 
@@ -53,7 +63,7 @@ export default function AdminPage() {
           "Content-Type": "application/json",
           "x-admin-password": password,
         },
-        body: JSON.stringify({ shopName: newShopName.trim() }),
+        body: JSON.stringify({ shopName: newShopName.trim(), days }),
       });
 
       const result = await response.json();
@@ -69,6 +79,12 @@ export default function AdminPage() {
   }
 
   async function renewLicense(id: string) {
+    const days = Number(licenseDayInputs[id] ?? "30");
+    if (!Number.isInteger(days) || days <= 0) {
+      setError("Geçerli bir gün sayısı girin.");
+      return;
+    }
+
     setError("");
 
     try {
@@ -78,7 +94,7 @@ export default function AdminPage() {
           "Content-Type": "application/json",
           "x-admin-password": password,
         },
-        body: JSON.stringify({ id, action: "renew" }),
+        body: JSON.stringify({ id, action: "renew", days }),
       });
 
       const result = await response.json();
@@ -163,20 +179,29 @@ export default function AdminPage() {
           className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-white/30 dark:border-slate-700/40 shadow-xl p-6"
         >
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Yeni Lisans Oluştur</h2>
-          <div className="flex gap-3">
+          <div className="flex flex-col md:flex-row gap-3">
             <input
               value={newShopName}
               onChange={(e) => setNewShopName(e.target.value)}
               placeholder="Dükkan adı"
               className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             />
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={newLicenseDays}
+              onChange={(e) => setNewLicenseDays(e.target.value)}
+              placeholder="Gün"
+              className="w-full md:w-28 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
             <button
               onClick={createLicense}
               disabled={generating || !newShopName.trim()}
-              className="px-6 py-3 bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-2xl text-sm flex items-center gap-2 hover:bg-blue-600 transition-colors"
+              className="px-6 py-3 bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-2xl text-sm flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              {generating ? "Üretiliyor..." : "Oluştur (30 gün)"}
+              {generating ? "Üretiliyor..." : "Oluştur"}
             </button>
           </div>
         </motion.div>
@@ -221,12 +246,20 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={licenseDayInputs[lic.id] ?? "30"}
+                    onChange={(e) => setLicenseDayInputs((current) => ({ ...current, [lic.id]: e.target.value }))}
+                    className="w-full sm:w-24 px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                  />
                   <button
                     onClick={() => renewLicense(lic.id)}
                     className="px-3 py-1.5 text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 transition-colors"
                   >
-                    +30 Gün
+                    Gün Ekle
                   </button>
                   {lic.is_active && (
                     <button
